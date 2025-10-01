@@ -20,15 +20,35 @@ struct indexed_data {
 };
 
 struct indexed_data* mk_indexed(struct record* rs, int n) {
-  // TODO 
+    struct indexed_data* data = malloc(sizeof(struct indexed_data));
+    struct index_record* irs = malloc(n * sizeof(struct index_record));    //SKal lave plads til n index records
+    if (!data){
+        fprintf(stderr, "Couldn't allocate memory for data");
+        exit(1);
+    }
+
+    data->irs = irs;
+    data->n = n;
+
+    for (int i = 0; i < data->n; i++){
+        data->irs[i].osm_id = rs[i].osm_id;
+        data->irs[i].record = &rs[i];
+    }
+    return data;
 }
 
 void free_indexed(struct indexed_data* data) {
-  // TODO
+    free(data->irs);
+    free(data);
 }
 
 const struct record* lookup_indexed(struct indexed_data *data, int64_t needle) {
-  // TODO 
+    for (int i = 0; i < data->n; i++){
+        if (data->irs[i].osm_id == needle){
+            return data->irs[i].record;
+        }
+    }
+    return NULL;
 }
 
 int main(int argc, char** argv) {

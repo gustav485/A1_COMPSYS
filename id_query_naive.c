@@ -18,7 +18,7 @@ struct naive_data* mk_naive(struct record* rs, int n) {
   // TODO Wrapper. index 
   struct naive_data* data = malloc(sizeof(struct naive_data));
   if (!data){
-    printf(stderr,"Couldn't allocate memory for data");
+    fprintf(stderr,"Couldn't allocate memory for data");
     exit(1);
   }
   data->rs = rs;

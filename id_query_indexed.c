@@ -14,3 +14,13 @@ struct index_record {
     int64_t osm_id;
     const struct record *record;
 };
+
+struct index_data {
+    struct indexed_record *irs;
+    int n;
+}
+
+struct indexed_data* mk_indexed(struct record* rs, int n);
+void free_indexed(struct indexed_data* data);
+const struct record* lookup_indexed(struct indexed_data *data, int64_t needle);
+

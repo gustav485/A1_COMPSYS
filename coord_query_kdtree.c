@@ -1,26 +1,27 @@
 #include <stdio.h>
-#include <math.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/time.h>
-#include <stdint.h>
-#include <errno.h>
+#include <math.h>
 #include <assert.h>
+#include <string.h>
+#include <errno.h>
 
-#include "record.h"
 #include "coord_query.h"
+#include "timing.h"
 
+/* Punkt i kd-træ */
 struct Point {
-    double coords[2];              // lon, lat
-    const struct record *rec;      // peger på record
+    double coords[2];            // coords[0] = lon, coords[1] = lat
+    const struct record *rec;    // peger på record
 };
 
+/* Node i kd-træ */
 struct Node {
     struct Point point;
-    int axis;                      // 0 = lon, 1 = lat
+    int axis;          // 0 = lon, 1 = lat
     struct Node *left, *right;
 };
 
+/* KD-tree wrapper */
 struct kdtree_data {
     struct Node *root;
 };
@@ -30,12 +31,13 @@ int compare_lon(const void *a, const void *b) {
     const struct Point *pa = a, *pb = b;
     return (pa->coords[0] > pb->coords[0]) - (pa->coords[0] < pb->coords[0]);
 }
+
 int compare_lat(const void *a, const void *b) {
     const struct Point *pa = a, *pb = b;
     return (pa->coords[1] > pb->coords[1]) - (pa->coords[1] < pb->coords[1]);
 }
 
-/* Byg rekursivt */
+/* Byg kd-træ rekursivt */
 struct Node* build(struct Point *pts, int n, int depth) {
     if (n <= 0) return NULL;
 
@@ -49,12 +51,13 @@ struct Node* build(struct Point *pts, int n, int depth) {
     assert(node);
     node->point = pts[mid];
     node->axis = axis;
-    node->left  = build(pts, mid, depth + 1);
+    node->left = build(pts, mid, depth + 1);
     node->right = build(pts + mid + 1, n - mid - 1, depth + 1);
 
     return node;
 }
 
+/* Opret kd-træ fra records */
 struct kdtree_data* mk_kdtree(struct record* rs, int n) {
     struct Point *pts = malloc(n * sizeof(struct Point));
     assert(pts);
@@ -73,6 +76,7 @@ struct kdtree_data* mk_kdtree(struct record* rs, int n) {
     return data;
 }
 
+/* Frigør node rekursivt */
 void free_nodes(struct Node *node) {
     if (!node) return;
     free_nodes(node->left);
@@ -111,6 +115,7 @@ void search(const struct Node *node, double lon, double lat,
     }
 }
 
+/* Wrapper til coord_query_loop */
 const struct record* lookup_kdtree(struct kdtree_data *data, double lon, double lat) {
     const struct record *best = NULL;
     double best_dist = INFINITY;
@@ -118,6 +123,7 @@ const struct record* lookup_kdtree(struct kdtree_data *data, double lon, double 
     return best;
 }
 
+/* Main til coord_query_loop */
 int main(int argc, char** argv) {
     return coord_query_loop(argc, argv,
                             (mk_index_fn)mk_kdtree,

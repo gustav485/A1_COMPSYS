@@ -18,6 +18,7 @@ struct indexed_data {
     struct index_record *irs;
     int n;
 };
+void quickSort(struct index_record arr[], int low, int high);
 
 struct indexed_data* mk_sorted(struct record* rs, int n) {
     struct indexed_data* data = malloc(sizeof(struct indexed_data));
@@ -43,7 +44,6 @@ void free_sorted(struct indexed_data* data) {
     free(data);
 }
 
-void swap(struct index_record* a, struct index_record* b);
 
 void swap(struct index_record *a, struct index_record *b) {
     struct index_record temp = *a;

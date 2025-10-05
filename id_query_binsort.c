@@ -22,7 +22,9 @@ void quickSort(struct index_record arr[], int low, int high);
 
 struct indexed_data* mk_sorted(struct record* rs, int n) {
     struct indexed_data* data = malloc(sizeof(struct indexed_data));
-    struct index_record* irs = malloc(n * sizeof(struct index_record));    //Skal lave plads til n index records
+
+    //Skal lave plads til n index records
+    struct index_record* irs = malloc(n * sizeof(struct index_record));   
     if (!data){
         fprintf(stderr, "Couldn't allocate memory for data");
         exit(1);

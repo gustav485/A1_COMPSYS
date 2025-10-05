@@ -21,7 +21,9 @@ struct indexed_data {
 
 struct indexed_data* mk_indexed(struct record* rs, int n) {
     struct indexed_data* data = malloc(sizeof(struct indexed_data));
-    struct index_record* irs = malloc(n * sizeof(struct index_record));    //SKal lave plads til n index records
+
+    //SKal lave plads til n index records
+    struct index_record* irs = malloc(n * sizeof(struct index_record));    
     if (!data){
         fprintf(stderr, "Couldn't allocate memory for data");
         exit(1);

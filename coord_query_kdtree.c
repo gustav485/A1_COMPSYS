@@ -26,7 +26,9 @@ struct kdtree_data {
 
 int compare_lon(const void *a, const void *b) {         // Sammenligner to koordinater
     const struct Point *pa = a, *pb = b;
-    return (pa->coords[0] > pb->coords[0]) - (pa->coords[0] < pb->coords[0]);       // Returnerer -1, 0 eller 1 alt efter om pa < pb, pa = pb eller pa > pb
+
+    // Returnerer -1, 0 eller 1 alt efter om pa < pb, pa = pb eller pa > pb
+    return (pa->coords[0] > pb->coords[0]) - (pa->coords[0] < pb->coords[0]); 
 }
 
 int compare_lat(const void *a, const void *b) {         //Sammenligner to koordinater
@@ -40,28 +42,34 @@ struct Node* build(struct Point *pts, int n, int depth) {       // Opbygning af 
     int axis = depth % 2;           // bruges til at skifte imellem lon og lat
     int mid = n / 2;                //Finder medianen 
 
-    if (axis == 0) qsort(pts, n, sizeof(struct Point), compare_lon);        //Sortering af punkterne alt efter om det skal være på x eller y.
+    //Sortering af punkterne alt efter om det skal være på x eller y.
+    if (axis == 0) qsort(pts, n, sizeof(struct Point), compare_lon);       
     else qsort(pts, n, sizeof(struct Point), compare_lat);
 
-    struct Node *node = malloc(sizeof(struct Node));                //Allokere plads til træet
-    node->point = pts[mid];                                 // median punktet bliver til nodens punkt
-    node->axis = axis;                                      //Gemmer hvilken akse der skal bruges til sortering
-    node->left = build(pts, mid, depth + 1);                    //Bygger venstre barn-træ (alt som er mindre end medianen)
-    node->right = build(pts + mid + 1, n - mid - 1, depth + 1); //Bygger højre barn-træ (alt som er større end medianen)
+    struct Node *node = malloc(sizeof(struct Node));   //Allokere plads til træet
+    node->point = pts[mid];                       // median punktet bliver til nodens punkt
+    node->axis = axis;                         //Gemmer hvilken akse der skal bruges til sortering
 
+    //Bygger venstre barn-træ (alt som er mindre end medianen)
+    node->left = build(pts, mid, depth + 1);                
+
+    //Bygger højre barn-træ (alt som er større end medianen)
+    node->right = build(pts + mid + 1, n - mid - 1, depth + 1); 
     return node;
 }
 
 struct kdtree_data* mk_kdtree(struct record* rs, int n) {
-    struct Point *pts = malloc(n * sizeof(struct Point));       //Allokerer hukommelse til et array er holder vores punkter                
+    //Allokerer hukommelse til et array er holder vores punkter  
+    struct Point *pts = malloc(n * sizeof(struct Point));                     
 
-    for (int i = 0; i < n; i++) {                       //Lægger data fra records til vores array rs
+    for (int i = 0; i < n; i++) {                 //Lægger data fra records til vores array rs
         pts[i].coords[0] = rs[i].lon;
         pts[i].coords[1] = rs[i].lat;
         pts[i].rec = &rs[i];
     }
 
-    struct kdtree_data *data = malloc(sizeof(struct kdtree_data));      //Allokerer hukommelse til hele træet
+    //Allokerer hukommelse til hele træet
+    struct kdtree_data *data = malloc(sizeof(struct kdtree_data));      
     data->root = build(pts, n, 0);                          //Bygger træet.
 
     free(pts);                  //Frigiver vores allokeret plads.
@@ -82,7 +90,8 @@ void free_kdtree(struct kdtree_data* data) {        // frigiver allokeret plads 
 }
 
 //Søge funktion til at finde nærmeste punkt i træet. 
-void search(const struct Node *node, double lon, double lat, const struct record **best, double *best_dist) {
+void search(const struct Node *node, double lon, double lat, 
+            const struct record **best, double *best_dist) {
     if (!node) return;      //Base case
 
     //Afstands beregninger fra searchpoint til nodens punkt.
@@ -90,7 +99,7 @@ void search(const struct Node *node, double lon, double lat, const struct record
     double dy = node->point.coords[1] - lat;        //forskel i lat
     double dist = sqrt(dx*dx + dy*dy);          //Euklid distance
 
-    if (dist < *best_dist) {            //Opdatere bedste punkt hvis det aktive punkt er tættere på.
+    if (dist < *best_dist) {        //Opdatere bedste punkt hvis det aktive punkt er tættere på.
         *best_dist = dist;
         *best = node->point.rec;
     }
@@ -99,14 +108,16 @@ void search(const struct Node *node, double lon, double lat, const struct record
 
     if (diff < 0) {
         search(node->left, lon, lat, best, best_dist);
-        if (fabs(diff) < *best_dist) search(node->right, lon, lat, best, best_dist);            //Søger på begge side af punktet 
+
+        //Søger på begge side af punktet 
+        if (fabs(diff) < *best_dist) search(node->right, lon, lat, best, best_dist);            
     } else {
         search(node->right, lon, lat, best, best_dist);
         if (fabs(diff) < *best_dist) search(node->left, lon, lat, best, best_dist);
     }
 }
 
-const struct record* lookup_kdtree(struct kdtree_data *data, double lon, double lat) {          //
+const struct record* lookup_kdtree(struct kdtree_data *data, double lon, double lat) {       
     const struct record *best = NULL;           //pointer til bedst nærmeste punkt
     double best_dist = INFINITY;                
     search(data->root, lon, lat, &best, &best_dist);        //søger efter nærmeste rod
